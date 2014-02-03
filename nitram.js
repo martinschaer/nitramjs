@@ -14,7 +14,7 @@ define(['jquery', 'history'], function($) {
   };
 
   var A = {
-    version: '0.0.2',
+    version: '0.0.3',
     routes: {},
 
     // on State change
