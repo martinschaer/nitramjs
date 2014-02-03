@@ -165,6 +165,7 @@ define(['jquery', 'history'], function($) {
 
     // App init
     init: function() {
+      var route;
 
       // history events
       History.Adapter.bind(window, 'statechange', A.onStateChange);
