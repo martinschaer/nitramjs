@@ -14,8 +14,9 @@ define(['jquery', 'history'], function($) {
   };
 
   var A = {
-    version: '0.0.3',
+    version: '0.0.4',
     routes: {},
+    base: '',
 
     // on State change
     //   - e: event object
