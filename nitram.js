@@ -13,10 +13,13 @@ define(['jquery', 'history'], function($) {
     return r;
   };
 
+  var noop = function() {};
+
   var A = {
-    version: '0.0.4',
+    version: '0.0.5',
     routes: {},
     base: '',
+    onRouteChange: noop,
 
     // on State change
     //   - e: event object
@@ -24,6 +27,8 @@ define(['jquery', 'history'], function($) {
       var state = History.getState(),
         data = state.data;
       // console.log('History statechange', state);
+      A.onRouteChange(data.route, data.data, data.params);
+      A.onRouteChange = noop;
       A[data.controller](data.route, data.data, data.params);
     },
 
