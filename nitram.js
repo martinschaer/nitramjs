@@ -16,7 +16,7 @@ define(['jquery', 'history'], function($) {
   var noop = function() {};
 
   var A = {
-    version: '0.0.5',
+    version: '0.0.6',
     routes: {},
     base: '',
     onRouteChange: noop,
@@ -35,7 +35,11 @@ define(['jquery', 'history'], function($) {
     // Intercepta request de links para hacer requests XHR en vez de
     //   recargar toda la página
     intercept: function(e) {
-      A.route($(this).attr('href'));
+      if ($(this).data('xhr') == 'back') {
+        History.back();
+      } else {
+        A.route($(this).attr('href'));
+      }
       e.preventDefault();
     },
 
@@ -157,12 +161,8 @@ define(['jquery', 'history'], function($) {
       if (typeof el == 'undefined') {
         $el = $(document);
       }
-
       // link interceptor
       $el.find('a[data-xhr]').unbind('click').click(A.intercept);
-
-      // backs
-      $el.find('.back').unbind('click').click(History.back);
     },
 
     // ----------------------
