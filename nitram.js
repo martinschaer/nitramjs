@@ -13,10 +13,21 @@ define(['jquery', 'history'], function($) {
     return r;
   };
 
+  var _callController = function(controller, route, data, params) {
+    // body class
+    var routeData = A.routes[route];
+    if (typeof routeData.bodyClass !== 'undefined') {
+      $('body').removeClass(getBodyClasses())
+        .addClass(routeData.bodyClass);
+    }
+    // call controller
+    A[controller](route, data, params);
+  };
+
   var noop = function() {};
 
   var A = {
-    version: '0.0.6',
+    version: '0.0.7',
     routes: {},
     base: '',
     onRouteChange: noop,
@@ -26,10 +37,12 @@ define(['jquery', 'history'], function($) {
     onStateChange: function(e) {
       var state = History.getState(),
         data = state.data;
+
       // console.log('History statechange', state);
       A.onRouteChange(data.route, data.data, data.params);
       A.onRouteChange = noop;
-      A[data.controller](data.route, data.data, data.params);
+
+      _callController(data.controller, data.route, data.data, data.params);
     },
 
     // Intercepta request de links para hacer requests XHR en vez de
@@ -117,12 +130,6 @@ define(['jquery', 'history'], function($) {
       callController = function(data) {
         var f = replace ? 'replaceState' : 'pushState';
 
-        // body class
-        if (typeof routeData.bodyClass !== 'undefined') {
-          $('body').removeClass(getBodyClasses())
-            .addClass(routeData.bodyClass);
-        }
-
         if (History.enabled) {
           // Push state
           History[f]({
@@ -134,10 +141,10 @@ define(['jquery', 'history'], function($) {
 
           // Call controller directly when replacing the state
           if (replace) {
-            A[controller](route, data, params);
+            _callController(controller, route, data, params);
           }
         } else {
-          A[controller](route, data, params);
+          _callController(controller, route, data, params);
         }
       };
 
