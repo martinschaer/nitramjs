@@ -15,7 +15,8 @@ define(['jquery', 'history'], function($) {
 
   var _callController = function(controller, route, data, params) {
     // body class
-    var routeData = A.routes[route];
+    // var routeData = A.routes[route];
+    var routeData = A.routes[A.matchRoute(route).found];
     if (typeof routeData.bodyClass !== 'undefined') {
       $('body').removeClass(getBodyClasses())
         .addClass(routeData.bodyClass);
@@ -27,7 +28,7 @@ define(['jquery', 'history'], function($) {
   var noop = function() {};
 
   var A = {
-    version: '0.0.7',
+    version: '0.0.8',
     routes: {},
     base: '',
     onRouteChange: noop,
