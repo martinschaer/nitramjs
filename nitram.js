@@ -166,7 +166,7 @@ define(['jquery', 'history'], function($) {
 
     // compile
     compile: function($el) {
-      if (typeof el == 'undefined') {
+      if (typeof $el == 'undefined') {
         $el = $(document);
       }
       // link interceptor
