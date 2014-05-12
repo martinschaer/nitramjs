@@ -29,12 +29,6 @@ module.exports = function(grunt) {
           'dist/nitram.min.js': ['nitram.js']
         }
       }
-    },
-    watch: {
-      jshint: {
-        files: ['<%= jshint.all %>'],
-        tasks: ['jshint']
-      }
     }
   });
 

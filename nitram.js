@@ -28,7 +28,7 @@ define(['jquery', 'history'], function($) {
   var noop = function() {};
 
   var A = {
-    version: '0.0.8',
+    version: '0.0.9',
     routes: {},
     base: '',
     onRouteChange: noop,
