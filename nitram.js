@@ -1,3 +1,5 @@
+/* globals define,History */
+
 define(['jquery', 'history'], function($) {
   'use strict';
 
@@ -28,14 +30,15 @@ define(['jquery', 'history'], function($) {
   var noop = function() {};
 
   var A = {
-    version: '0.0.9',
+    version: '0.0.10',
     routes: {},
     base: '',
     onRouteChange: noop,
+    beforeIntercept: noop,
 
     // on State change
     //   - e: event object
-    onStateChange: function(e) {
+    onStateChange: function() {
       var state = History.getState(),
         data = state.data;
 
@@ -49,7 +52,10 @@ define(['jquery', 'history'], function($) {
     // Intercepta request de links para hacer requests XHR en vez de
     //   recargar toda la página
     intercept: function(e) {
-      if ($(this).data('xhr') == 'back') {
+      A.beforeIntercept();
+      A.beforeIntercept = noop;
+
+      if ($(this).data('xhr') === 'back') {
         History.back();
       } else {
         A.route($(this).attr('href'));
@@ -67,12 +73,12 @@ define(['jquery', 'history'], function($) {
 
       for (pattern in A.routes) {
         patternSplit = pattern.split('/');
-        if (routeSplit.length == patternSplit.length) {
+        if (routeSplit.length === patternSplit.length) {
           failed = false;
           for (i = 0; i < patternSplit.length; i++) {
-            if (patternSplit[i][0] == ':' && patternSplit[i].length > 1) {
+            if (patternSplit[i][0] === ':' && patternSplit[i].length > 1) {
               params[patternSplit[i].substr(1)] = routeSplit[i];
-            } else if (patternSplit[i] != routeSplit[i]) {
+            } else if (patternSplit[i] !== routeSplit[i]) {
               params = {};
               failed = true;
               break;
@@ -99,16 +105,16 @@ define(['jquery', 'history'], function($) {
       baseAndRoute = this.base + route;
 
       // defaults
-      if (typeof replace == 'undefined') {
+      if (typeof replace === 'undefined') {
         replace = false;
       }
 
       // replace to true if we are on the same path
-      replace = window.location.pathname == baseAndRoute | replace;
+      replace = window.location.pathname === baseAndRoute | replace;
 
       // find route data
       routeData = A.routes[route];
-      if (typeof routeData == 'undefined') {
+      if (typeof routeData === 'undefined') {
         routeData = A.matchRoute(route);
         if (routeData.found !== false) {
           params = routeData.params;
@@ -123,7 +129,7 @@ define(['jquery', 'history'], function($) {
       controller = routeData.controller;
 
       // route data defautls
-      if (typeof routeData.req == 'undefined') {
+      if (typeof routeData.req === 'undefined') {
         routeData.req = true;
       }
 
@@ -154,7 +160,7 @@ define(['jquery', 'history'], function($) {
         $.ajaxSetup({
           cache: false
         });
-        $.get(baseAndRoute, function(data, textStatus, jqXHR) {
+        $.get(baseAndRoute, function(data) {
           callController(data);
         })
         // hacer algo con el error, o no es necesario?
@@ -166,7 +172,7 @@ define(['jquery', 'history'], function($) {
 
     // compile
     compile: function($el) {
-      if (typeof $el == 'undefined') {
+      if (typeof $el === 'undefined') {
         $el = $(document);
       }
       // link interceptor

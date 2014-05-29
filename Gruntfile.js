@@ -1,22 +1,13 @@
 module.exports = function(grunt) {
 
-  // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     jshint: {
       options: {
         ignores: [],
-        indent: 2,
-        asi: true, // This option suppresses warnings about missing semicolons
-        globals: {
-          jQuery: true,
-          console: true,
-          module: true,
-          document: true,
-          define: true
-        }
+        jshintrc: true
       },
-      all: ['Gruntfile.js', 'nitram.js', 'demo/**/*.js']
+      all: ['nitram.js']
     },
     uglify: {
       options: {
