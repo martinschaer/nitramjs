@@ -18,19 +18,24 @@ define(['jquery', 'history'], function($) {
   var _callController = function(controller, route, data, params) {
     // body class
     // var routeData = A.routes[route];
-    var routeData = A.routes[A.matchRoute(route).found];
+    var routeSplit = route.split('#'),
+      inRouteHash = routeSplit[1],
+      routeData = A.routes[A.matchRoute(routeSplit[0]).found];
+
     if (typeof routeData.bodyClass !== 'undefined') {
       $('body').removeClass(getBodyClasses())
         .addClass(routeData.bodyClass);
     }
+
     // call controller
     A[controller](route, data, params);
+    if (inRouteHash) window.location.hash = '#' + inRouteHash;
   };
 
   var noop = function() {};
 
   var A = {
-    version: '0.0.10',
+    version: '0.0.11',
     routes: {},
     base: '',
     onRouteChange: noop,
@@ -99,11 +104,19 @@ define(['jquery', 'history'], function($) {
 
     // route
     route: function(route, replace) {
-      var routeData, controller, callController, baseAndRoute,
-        params = {};
+      var routeData,
+        controller,
+        callController,
+        baseAndRoute,
+        params = {},
+        inRouteHash,
+        routeSplit = route.split('#');
+
+      inRouteHash = routeSplit[1];
+      route = routeSplit[0];
 
       baseAndRoute = this.base + route;
-
+      if (inRouteHash) inRouteHash = '#' + inRouteHash;
       // defaults
       if (typeof replace === 'undefined') {
         replace = false;
@@ -135,23 +148,30 @@ define(['jquery', 'history'], function($) {
 
       // call controller
       callController = function(data) {
+        route = inRouteHash ? route + inRouteHash : route;
         var f = replace ? 'replaceState' : 'pushState';
-
         if (History.enabled) {
           // Push state
           History[f]({
             controller: controller,
-            route: baseAndRoute,
+            route: route,
             data: data,
             params: params
           }, routeData.title, baseAndRoute);
 
           // Call controller directly when replacing the state
           if (replace) {
-            _callController(controller, route, data, params);
+            _callController(
+              controller,
+              route,
+              data, params);
           }
         } else {
-          _callController(controller, route, data, params);
+          _callController(
+            controller,
+            route,
+            data,
+            params);
         }
       };
 
