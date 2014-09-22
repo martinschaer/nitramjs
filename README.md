@@ -3,6 +3,10 @@
 Front-end SPA framework with jQuery and History.js
 
 ## Changelog
+
+### v. 0.0.12 and 0.0.11
+- routes can work with hashes
+
 ### v. 0.0.10
 - new .jshintrc applied
 - updated dev dependencies to latest
