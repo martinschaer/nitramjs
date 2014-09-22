@@ -116,14 +116,18 @@ define(['jquery', 'history'], function($) {
       route = routeSplit[0];
 
       baseAndRoute = this.base + route;
-      if (inRouteHash) inRouteHash = '#' + inRouteHash;
+
+      if (inRouteHash) {
+        baseAndRoute = '#' + inRouteHash;
+      }
+
       // defaults
       if (typeof replace === 'undefined') {
         replace = false;
       }
 
       // replace to true if we are on the same path
-      replace = window.location.pathname === baseAndRoute | replace;
+      replace = window.location.pathname === this.base + route | replace;
 
       // find route data
       routeData = A.routes[route];
@@ -148,13 +152,12 @@ define(['jquery', 'history'], function($) {
 
       // call controller
       callController = function(data) {
-        route = inRouteHash ? route + inRouteHash : route;
         var f = replace ? 'replaceState' : 'pushState';
         if (History.enabled) {
           // Push state
           History[f]({
             controller: controller,
-            route: route,
+            route: baseAndRoute,
             data: data,
             params: params
           }, routeData.title, baseAndRoute);
