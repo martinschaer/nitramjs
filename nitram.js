@@ -3,6 +3,8 @@
 define(['jquery', 'history'], function($) {
   'use strict';
 
+  var FAIL_CONTROLLER_NAME = 'failController';
+
   var getBodyClasses = function() {
     var r, c, arr = [];
     for (var key in A.routes) {
@@ -15,10 +17,12 @@ define(['jquery', 'history'], function($) {
     return r;
   };
 
-  var _callController = function(controller, route, data, params) {
-    // body class
-    // var routeData = A.routes[route];
-    var routeSplit = route.split('#'),
+  var _callController = function(state) {
+    var controller = state.controller,
+      route = state.route,
+      data = state.data,
+      params = state.params,
+      routeSplit = route.split('#'),
       inRouteHash = routeSplit[1],
       routeData = A.routes[A.matchRoute(routeSplit[0]).found];
 
@@ -35,7 +39,7 @@ define(['jquery', 'history'], function($) {
   var noop = function() {};
 
   var A = {
-    version: '0.0.11',
+    version: '0.0.13',
     routes: {},
     base: '',
     onRouteChange: noop,
@@ -51,7 +55,7 @@ define(['jquery', 'history'], function($) {
       A.onRouteChange(data.route, data.data, data.params);
       A.onRouteChange = noop;
 
-      _callController(data.controller, data.route, data.data, data.params);
+      _callController(data);
     },
 
     // Intercepta request de links para hacer requests XHR en vez de
@@ -137,7 +141,8 @@ define(['jquery', 'history'], function($) {
           params = routeData.params;
           routeData = A.routes[routeData.found];
         } else {
-          // silent error
+          controller = FAIL_CONTROLLER_NAME;
+          callController(null, 404);
           return;
         }
       }
@@ -151,30 +156,25 @@ define(['jquery', 'history'], function($) {
       }
 
       // call controller
-      callController = function(data) {
-        var f = replace ? 'replaceState' : 'pushState';
-        if (History.enabled) {
-          // Push state
-          History[f]({
+      callController = function(data, status) {
+        var f = replace ? 'replaceState' : 'pushState',
+          state = {
             controller: controller,
             route: baseAndRoute,
             data: data,
-            params: params
-          }, routeData.title, baseAndRoute);
+            params: params,
+            status: status
+          };
+        if (History.enabled) {
+          // Push state
+          History[f](state, routeData.title, baseAndRoute);
 
           // Call controller directly when replacing the state
           if (replace) {
-            _callController(
-              controller,
-              route,
-              data, params);
+            _callController(state);
           }
         } else {
-          _callController(
-            controller,
-            route,
-            data,
-            params);
+          _callController(state);
         }
       };
 
@@ -186,8 +186,10 @@ define(['jquery', 'history'], function($) {
         $.get(baseAndRoute, function(data) {
           callController(data);
         })
-        // hacer algo con el error, o no es necesario?
-        .fail(function() {});
+        .fail(function(jqXHR) {
+          controller = FAIL_CONTROLLER_NAME;
+          callController(null, jqXHR.status);
+        });
       } else {
         callController(null);
       }
@@ -224,6 +226,8 @@ define(['jquery', 'history'], function($) {
       A.route(route, true);
     }
   };
+
+  A[FAIL_CONTROLLER_NAME] = noop;
 
   return A;
 });
