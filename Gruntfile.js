@@ -1,4 +1,8 @@
 module.exports = function(grunt) {
+  'use strict';
+
+  var distBanner = '/*!\n\n <%= pkg.name %> v<%= pkg.version %>' +
+    '\n\n<%= grunt.file.read("LICENSE") %>\n@license\n*/\n';
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -13,11 +17,27 @@ module.exports = function(grunt) {
       options: {
         wrap: 'nitram',
         report: 'min',
-        banner: '/*!\n\n <%= pkg.name %> v<%= pkg.version %>\n\n<%= grunt.file.read("LICENSE") %>\n@license\n*/\n'
+        banner: distBanner
       },
       dist: {
         files: {
           'dist/nitram.min.js': ['nitram.js']
+        }
+      }
+    },
+    copy: {
+      dist: {
+        src: 'nitram.js',
+        dest: 'dist/nitram.js'
+      },
+    },
+    usebanner: {
+      dist: {
+        options: {
+          banner: distBanner
+        },
+        files: {
+          src: ['dist/nitram.js']
         }
       }
     }
@@ -25,5 +45,14 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-banner');
+
+  grunt.registerTask('dist', [
+    'jshint',
+    'copy',
+    'usebanner',
+    'uglify'
+  ]);
 
 };
