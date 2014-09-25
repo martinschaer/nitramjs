@@ -5,7 +5,7 @@ define(['jquery', 'history'], function($) {
 
   var FAIL_CONTROLLER_NAME = 'failController';
 
-  var getBodyClasses = function() {
+  var getBodyClasses = function getBodyClasses() {
     var r, c, arr = [];
     for (var key in A.routes) {
       c = A.routes[key];
@@ -24,11 +24,15 @@ define(['jquery', 'history'], function($) {
       params = state.params,
       routeSplit = route.split('#'),
       inRouteHash = routeSplit[1],
-      routeData = A.routes[A.matchRoute(routeSplit[0]).found];
+      matchedRoute = A.matchRoute(routeSplit[0]),
+      routeData = A.routes[matchedRoute.found];
 
-    if (typeof routeData.bodyClass !== 'undefined') {
-      $('body').removeClass(getBodyClasses())
-        .addClass(routeData.bodyClass);
+    $('body').removeClass(getBodyClasses());
+    
+    if (typeof routeData !== 'undefined' &&
+      typeof routeData.bodyClass !== 'undefined') {
+
+      $('body').addClass(routeData.bodyClass);
     }
 
     // call controller
@@ -39,7 +43,7 @@ define(['jquery', 'history'], function($) {
   var noop = function() {};
 
   var A = {
-    version: '0.0.13',
+    version: '0.0.14',
     routes: {},
     base: '',
     onRouteChange: noop,
@@ -116,47 +120,9 @@ define(['jquery', 'history'], function($) {
         inRouteHash,
         routeSplit = route.split('#');
 
-      inRouteHash = routeSplit[1];
-      route = routeSplit[0];
-
-      baseAndRoute = this.base + route;
-
-      if (inRouteHash) {
-        baseAndRoute = '#' + inRouteHash;
-      }
-
-      // defaults
-      if (typeof replace === 'undefined') {
-        replace = false;
-      }
-
-      // replace to true if we are on the same path
-      replace = window.location.pathname === this.base + route | replace;
-
-      // find route data
-      routeData = A.routes[route];
-      if (typeof routeData === 'undefined') {
-        routeData = A.matchRoute(route);
-        if (routeData.found !== false) {
-          params = routeData.params;
-          routeData = A.routes[routeData.found];
-        } else {
-          controller = FAIL_CONTROLLER_NAME;
-          callController(null, 404);
-          return;
-        }
-      }
-
-      // get controller
-      controller = routeData.controller;
-
-      // route data defautls
-      if (typeof routeData.req === 'undefined') {
-        routeData.req = true;
-      }
-
       // call controller
-      callController = function(data, status) {
+      callController = function(data, status, params, controller,
+        baseAndRoute, routeData, replace) {
         var f = replace ? 'replaceState' : 'pushState',
           state = {
             controller: controller,
@@ -178,20 +144,63 @@ define(['jquery', 'history'], function($) {
         }
       };
 
+      inRouteHash = routeSplit[1];
+      route = routeSplit[0];
+
+      baseAndRoute = this.base + route;
+
+      if (inRouteHash) {
+        baseAndRoute = '#' + inRouteHash;
+      }
+
+      // defaults
+      if (typeof replace === 'undefined') {
+        replace = false;
+      }
+
+      // replace to true if we are on the same path
+      replace = window.location.pathname === this.base + route || replace;
+
+      // find route data
+      routeData = A.routes[route];
+      if (typeof routeData === 'undefined') {
+        routeData = A.matchRoute(route);
+        if (routeData.found !== false) {
+          params = routeData.params;
+          routeData = A.routes[routeData.found];
+        } else {
+          controller = FAIL_CONTROLLER_NAME;
+          callController(null, 404, params, controller, baseAndRoute, routeData,
+            replace);
+          return;
+        }
+      }
+
+      // route data defautls
+      if (typeof routeData.req === 'undefined') {
+        routeData.req = true;
+      }
+
+      // get controller
+      controller = routeData.controller;
+
       // GET
       if (routeData.req) {
         $.ajaxSetup({
           cache: false
         });
-        $.get(baseAndRoute, function(data) {
-          callController(data);
+        $.get(baseAndRoute, function(data, textStatus, jqXHR) {
+          callController(data, jqXHR.status, params, controller, baseAndRoute,
+            routeData, replace);
         })
         .fail(function(jqXHR) {
           controller = FAIL_CONTROLLER_NAME;
-          callController(null, jqXHR.status);
+          callController(null, jqXHR.status, params, controller, baseAndRoute,
+            routeData, replace);
         });
       } else {
-        callController(null);
+        callController(null, 200, params, controller, baseAndRoute, routeData,
+          replace);
       }
     },
 
