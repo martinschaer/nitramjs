@@ -1,9 +1,39 @@
+/*!
+
+ NitramJS v0.0.15
+
+The MIT License (MIT)
+
+Copyright (c) 2014 martinschaer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+@license
+*/
+
 /* globals define,History */
 
 define(['jquery', 'history'], function($) {
   'use strict';
 
-  var getBodyClasses = function() {
+  var FAIL_CONTROLLER_NAME = 'failController';
+
+  var getBodyClasses = function getBodyClasses() {
     var r, c, arr = [];
     for (var key in A.routes) {
       c = A.routes[key];
@@ -15,16 +45,22 @@ define(['jquery', 'history'], function($) {
     return r;
   };
 
-  var _callController = function(controller, route, data, params) {
-    // body class
-    // var routeData = A.routes[route];
-    var routeSplit = route.split('#'),
+  var _callController = function(state) {
+    var controller = state.controller,
+      route = state.route,
+      data = state.data,
+      params = state.params,
+      routeSplit = route.split('#'),
       inRouteHash = routeSplit[1],
-      routeData = A.routes[A.matchRoute(routeSplit[0]).found];
+      matchedRoute = A.matchRoute(routeSplit[0]),
+      routeData = A.routes[matchedRoute.found];
 
-    if (typeof routeData.bodyClass !== 'undefined') {
-      $('body').removeClass(getBodyClasses())
-        .addClass(routeData.bodyClass);
+    $('body').removeClass(getBodyClasses());
+
+    if (typeof routeData !== 'undefined' &&
+      typeof routeData.bodyClass !== 'undefined') {
+
+      $('body').addClass(routeData.bodyClass);
     }
 
     // call controller
@@ -35,23 +71,26 @@ define(['jquery', 'history'], function($) {
   var noop = function() {};
 
   var A = {
-    version: '0.0.11',
+    version: '0.0.15',
     routes: {},
     base: '',
+    routed: false,
     onRouteChange: noop,
     beforeIntercept: noop,
 
     // on State change
     //   - e: event object
-    onStateChange: function() {
+    onStateChange: function(e) {
       var state = History.getState(),
         data = state.data;
 
-      // console.log('History statechange', state);
+
+      // console.log('History statechange', data);
       A.onRouteChange(data.route, data.data, data.params);
       A.onRouteChange = noop;
-
-      _callController(data.controller, data.route, data.data, data.params);
+      if (A.routed) {
+        _callController(data);
+      }
     },
 
     // Intercepta request de links para hacer requests XHR en vez de
@@ -111,19 +150,49 @@ define(['jquery', 'history'], function($) {
         params = {},
         inRouteHash,
         routeSplit = route.split('#');
+      // call controller
+      callController = function(data, status, params, controller,
+        baseAndRoute, routeData, replace) {
+        var f = replace ? 'replaceState' : 'pushState',
+          state = {
+            controller: controller,
+            route: baseAndRoute,
+            data: data,
+            params: params,
+            status: status
+          };
+        if (History.enabled) {
+          // Push state
+          //LA BRONCA ES QUE ESTO TAMBIEN LLAMA A _callCONTROLLER
+          //Y SE LLAMA 2 VECES, POR QUE CAMBIA EL ESTADO
+          History[f](state, routeData.title, baseAndRoute);
+          // Call controller directly when replacing the state
+          if (replace) {
+            A.routed = true;
+            _callController(state);
+          }
+        } else {
+          // A.routed = true;
+          _callController(state);
+        }
+      };
 
       inRouteHash = routeSplit[1];
       route = routeSplit[0];
 
       baseAndRoute = this.base + route;
-      if (inRouteHash) inRouteHash = '#' + inRouteHash;
+
+      if (inRouteHash) {
+        baseAndRoute = '#' + inRouteHash;
+      }
+
       // defaults
       if (typeof replace === 'undefined') {
         replace = false;
       }
 
       // replace to true if we are on the same path
-      replace = window.location.pathname === baseAndRoute | replace;
+      replace = window.location.pathname === this.base + route || replace;
 
       // find route data
       routeData = A.routes[route];
@@ -133,60 +202,38 @@ define(['jquery', 'history'], function($) {
           params = routeData.params;
           routeData = A.routes[routeData.found];
         } else {
-          // silent error
+          controller = FAIL_CONTROLLER_NAME;
+          callController(null, 404, params, controller, baseAndRoute, routeData,
+            replace);
           return;
         }
       }
-
-      // get controller
-      controller = routeData.controller;
 
       // route data defautls
       if (typeof routeData.req === 'undefined') {
         routeData.req = true;
       }
 
-      // call controller
-      callController = function(data) {
-        route = inRouteHash ? route + inRouteHash : route;
-        var f = replace ? 'replaceState' : 'pushState';
-        if (History.enabled) {
-          // Push state
-          History[f]({
-            controller: controller,
-            route: route,
-            data: data,
-            params: params
-          }, routeData.title, baseAndRoute);
-
-          // Call controller directly when replacing the state
-          if (replace) {
-            _callController(
-              controller,
-              route,
-              data, params);
-          }
-        } else {
-          _callController(
-            controller,
-            route,
-            data,
-            params);
-        }
-      };
+      // get controller
+      controller = routeData.controller;
 
       // GET
       if (routeData.req) {
         $.ajaxSetup({
           cache: false
         });
-        $.get(baseAndRoute, function(data) {
-          callController(data);
+        $.get(baseAndRoute, function(data, textStatus, jqXHR) {
+          callController(data, jqXHR.status, params, controller, baseAndRoute,
+            routeData, replace);
         })
-        // hacer algo con el error, o no es necesario?
-        .fail(function() {});
+          .fail(function(jqXHR) {
+            controller = FAIL_CONTROLLER_NAME;
+            callController(null, jqXHR.status, params, controller, baseAndRoute,
+              routeData, replace);
+          });
       } else {
-        callController(null);
+        callController(null, 200, params, controller, baseAndRoute, routeData,
+          replace);
       }
     },
 
@@ -218,9 +265,12 @@ define(['jquery', 'history'], function($) {
       if (route.indexOf(this.base) === 0) {
         route = route.substr(this.base.length);
       }
+
       A.route(route, true);
     }
   };
+
+  A[FAIL_CONTROLLER_NAME] = noop;
 
   return A;
 });
