@@ -28,7 +28,7 @@ define(['jquery', 'history'], function($) {
       routeData = A.routes[matchedRoute.found];
 
     $('body').removeClass(getBodyClasses());
-    
+
     if (typeof routeData !== 'undefined' &&
       typeof routeData.bodyClass !== 'undefined') {
 
@@ -43,9 +43,10 @@ define(['jquery', 'history'], function($) {
   var noop = function() {};
 
   var A = {
-    version: '0.0.14',
+    version: '0.0.15',
     routes: {},
     base: '',
+    routed: false,
     onRouteChange: noop,
     beforeIntercept: noop,
 
@@ -55,11 +56,11 @@ define(['jquery', 'history'], function($) {
       var state = History.getState(),
         data = state.data;
 
-      // console.log('History statechange', state);
       A.onRouteChange(data.route, data.data, data.params);
       A.onRouteChange = noop;
-
-      _callController(data);
+      if (A.routed) {
+        _callController(data);
+      }
     },
 
     // Intercepta request de links para hacer requests XHR en vez de
@@ -137,6 +138,7 @@ define(['jquery', 'history'], function($) {
 
           // Call controller directly when replacing the state
           if (replace) {
+            A.routed = true;
             _callController(state);
           }
         } else {
