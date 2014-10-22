@@ -1,7 +1,7 @@
 {
   "name": "NitramJS",
   "description": "Front-end SPA framework with jQuery and History.js",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "author": {
     "name": "Martin Schaer",
     "email": "martin@interaction.cr"
