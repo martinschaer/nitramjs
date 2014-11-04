@@ -22,11 +22,10 @@ define(['jquery', 'history'], function($) {
       route = state.route,
       data = state.data,
       params = state.params,
-      routeSplit = route.split('#'),
-      inRouteHash = routeSplit[1],
-      matchedRoute = A.matchRoute(routeSplit[0]),
+      inRouteHash = state.hash,
+      matchedRoute = A.matchRoute(route),
       routeData = A.routes[matchedRoute.found];
-
+    // route = routeSplit[0];
     $('body').removeClass(getBodyClasses());
 
     if (typeof routeData !== 'undefined' &&
@@ -37,7 +36,7 @@ define(['jquery', 'history'], function($) {
 
     // call controller
     A[controller](route, data, params);
-    if (inRouteHash) window.location.hash = '#' + inRouteHash;
+    if (inRouteHash) window.location.hash = inRouteHash;
   };
 
   var noop = function() {};
@@ -56,7 +55,6 @@ define(['jquery', 'history'], function($) {
       var state = History.getState(),
         data = state.data;
 
-
       // console.log('History statechange', data);
       A.onRouteChange(data.route, data.data, data.params);
       A.onRouteChange = noop;
@@ -67,7 +65,7 @@ define(['jquery', 'history'], function($) {
 
     // Intercepta request de links para hacer requests XHR en vez de
     //   recargar toda la página
-    intercept: function() {
+    intercept: function(e) {
       A.beforeIntercept();
       A.beforeIntercept = noop;
 
@@ -125,18 +123,19 @@ define(['jquery', 'history'], function($) {
       // call controller
       callController = function(data, status, params, controller,
         baseAndRoute, routeData, replace) {
+        //
         var f = replace ? 'replaceState' : 'pushState',
           state = {
             controller: controller,
             route: baseAndRoute,
+            hash: inRouteHash,
             data: data,
             params: params,
             status: status
           };
         if (History.enabled) {
           // Push state
-          //LA BRONCA ES QUE ESTO TAMBIEN LLAMA A _callCONTROLLER
-          //Y SE LLAMA 2 VECES, POR QUE CAMBIA EL ESTADO
+          //
           History[f](state, routeData.title, baseAndRoute);
           // Call controller directly when replacing the state
           if (replace) {
@@ -155,8 +154,9 @@ define(['jquery', 'history'], function($) {
       baseAndRoute = this.base + route;
 
       if (inRouteHash) {
-        baseAndRoute = '#' + inRouteHash;
+        inRouteHash = '#' + inRouteHash;
       }
+
 
       // defaults
       if (typeof replace === 'undefined') {
