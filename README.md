@@ -4,6 +4,14 @@ Front-end SPA framework with jQuery and History.js
 
 ## Changelog
 
+### v. 0.0.16
+- fix hash
+
+### v. 0.0.15 - 0.0.13
+- fixed situation when first controller got called twice
+- failController
+- distribution file not minified
+
 ### v. 0.0.12 and 0.0.11
 - routes can work with hashes
 
