@@ -1,6 +1,6 @@
 /*!
 
- NitramJS v0.0.15
+ NitramJS v0.0.16
 
 The MIT License (MIT)
 
@@ -50,9 +50,8 @@ define(['jquery', 'history'], function($) {
       route = state.route,
       data = state.data,
       params = state.params,
-      routeSplit = route.split('#'),
-      inRouteHash = routeSplit[1],
-      matchedRoute = A.matchRoute(routeSplit[0]),
+      inRouteHash = state.hash,
+      matchedRoute = A.matchRoute(route),
       routeData = A.routes[matchedRoute.found];
 
     $('body').removeClass(getBodyClasses());
@@ -65,13 +64,13 @@ define(['jquery', 'history'], function($) {
 
     // call controller
     A[controller](route, data, params);
-    if (inRouteHash) window.location.hash = '#' + inRouteHash;
+    if (inRouteHash) window.location.hash = inRouteHash;
   };
 
   var noop = function() {};
 
   var A = {
-    version: '0.0.15',
+    version: '0.0.16',
     routes: {},
     base: '',
     routed: false,
@@ -156,6 +155,7 @@ define(['jquery', 'history'], function($) {
           state = {
             controller: controller,
             route: baseAndRoute,
+            hash: inRouteHash,
             data: data,
             params: params,
             status: status
@@ -180,7 +180,7 @@ define(['jquery', 'history'], function($) {
       baseAndRoute = this.base + route;
 
       if (inRouteHash) {
-        baseAndRoute = '#' + inRouteHash;
+        inRouteHash = '#' + inRouteHash;
       }
 
       // defaults

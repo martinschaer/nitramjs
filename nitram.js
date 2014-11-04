@@ -42,7 +42,7 @@ define(['jquery', 'history'], function($) {
   var noop = function() {};
 
   var A = {
-    version: '0.0.15',
+    version: '0.0.16',
     routes: {},
     base: '',
     routed: false,
