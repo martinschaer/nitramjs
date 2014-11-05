@@ -39,10 +39,10 @@ define(['jquery', 'history'], function($) {
     if (inRouteHash) window.location.hash = inRouteHash;
   };
 
-  var noop = function() {};
+  var noop = function() {}; 
 
   var A = {
-    version: '0.0.16',
+    version: '0.1.0',
     routes: {},
     base: '',
     routed: false,
@@ -53,13 +53,21 @@ define(['jquery', 'history'], function($) {
     //   - e: event object
     onStateChange: function() {
       var state = History.getState(),
-        data = state.data;
+        data = state.data,
+        next;
 
-      A.onRouteChange(data.route, data.data, data.params);
-      A.onRouteChange = noop;
-      if (A.routed) {
-        _callController(data);
-      }
+      next = function () {
+        if (A.routed) {
+          _callController(data);
+        }
+      };
+
+      A.onRouteChange(function() {
+        A.onRouteChange = function(next) {
+          next();
+        };
+        next();
+      }, data.route, data.data, data.params);
     },
 
     // Intercepta request de links para hacer requests XHR en vez de

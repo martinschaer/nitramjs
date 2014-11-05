@@ -4,6 +4,9 @@ Front-end SPA framework with jQuery and History.js
 
 ## Changelog
 
+### v. 0.1.0
+- new param for onRouteChange, which now has to call a callback
+
 ### v. 0.0.16
 - fix hash
 
