@@ -1,6 +1,6 @@
 /* globals define,History */
 
-define(['jquery', 'history'], function($) {
+define(['jquery', 'history'], function ($) {
   'use strict';
 
   var FAIL_CONTROLLER_NAME = 'failController';
@@ -17,7 +17,7 @@ define(['jquery', 'history'], function($) {
     return r;
   };
 
-  var _callController = function(state) {
+  var _callController = function (state) {
     var controller = state.controller,
       route = state.route,
       data = state.data,
@@ -39,19 +39,19 @@ define(['jquery', 'history'], function($) {
     if (inRouteHash) window.location.hash = inRouteHash;
   };
 
-  var noop = function() {}; 
+  var noop = function () {};
 
   var A = {
-    version: '0.1.0',
+    version: '0.1.1',
     routes: {},
     base: '',
     routed: false,
-    onRouteChange: noop,
+    onRouteChange: null,
     beforeIntercept: noop,
 
     // on State change
     //   - e: event object
-    onStateChange: function() {
+    onStateChange: function () {
       var state = History.getState(),
         data = state.data,
         next;
@@ -62,17 +62,19 @@ define(['jquery', 'history'], function($) {
         }
       };
 
-      A.onRouteChange(function() {
-        A.onRouteChange = function(next) {
-          next();
-        };
+      if (A.onRouteChange === null) {
         next();
-      }, data.route, data.data, data.params);
+      } else {
+        A.onRouteChange(function () {
+          A.onRouteChange = null;
+          next();
+        }, data.route, data.data, data.params);
+      }
     },
 
     // Intercepta request de links para hacer requests XHR en vez de
     //   recargar toda la página
-    intercept: function(e) {
+    intercept: function (e) {
       A.beforeIntercept();
       A.beforeIntercept = noop;
 
@@ -85,7 +87,7 @@ define(['jquery', 'history'], function($) {
     },
 
     // match route pattern
-    matchRoute: function(route) {
+    matchRoute: function (route) {
       var i, patternSplit, pattern,
         routeSplit = route.split('/'),
         failed = false,
@@ -119,7 +121,7 @@ define(['jquery', 'history'], function($) {
     },
 
     // route
-    route: function(route, replace) {
+    route: function (route, replace) {
       var routeData,
         controller,
         callController,
@@ -129,7 +131,7 @@ define(['jquery', 'history'], function($) {
         routeSplit = route.split('#');
 
       // call controller
-      callController = function(data, status, params, controller,
+      callController = function (data, status, params, controller,
         baseAndRoute, routeData, replace) {
         var f = replace ? 'replaceState' : 'pushState',
           state = {
@@ -199,15 +201,15 @@ define(['jquery', 'history'], function($) {
         $.ajaxSetup({
           cache: false
         });
-        $.get(baseAndRoute, function(data, textStatus, jqXHR) {
+        $.get(baseAndRoute, function (data, textStatus, jqXHR) {
           callController(data, jqXHR.status, params, controller, baseAndRoute,
             routeData, replace);
         })
-        .fail(function(jqXHR) {
-          controller = FAIL_CONTROLLER_NAME;
-          callController(null, jqXHR.status, params, controller, baseAndRoute,
-            routeData, replace);
-        });
+          .fail(function (jqXHR) {
+            controller = FAIL_CONTROLLER_NAME;
+            callController(null, jqXHR.status, params, controller, baseAndRoute,
+              routeData, replace);
+          });
       } else {
         callController(null, 200, params, controller, baseAndRoute, routeData,
           replace);
@@ -215,7 +217,7 @@ define(['jquery', 'history'], function($) {
     },
 
     // compile
-    compile: function($el) {
+    compile: function ($el) {
       if (typeof $el === 'undefined') {
         $el = $(document);
       }
@@ -228,7 +230,7 @@ define(['jquery', 'history'], function($) {
     // ----------------------
 
     // App init
-    init: function() {
+    init: function () {
       var route;
 
       // history events
