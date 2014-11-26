@@ -84,7 +84,8 @@ define(['jquery', 'history'], function($) {
         A.route($this.attr('href'));
       }
       //Si autoscroll es true tira la pagina hacia arriba
-      if ($this.data('autoscroll') === 'true') {
+      if ($this.data('autoscroll') === 'true' ||
+        $this.data('autoscroll') === true) {
         $('body').scrollTop(0);
       }
       e.preventDefault();
