@@ -36,7 +36,12 @@ define(['jquery', 'history'], function($) {
     }
     // call controller
     A[controller](route, data, params);
-    if (inRouteHash) window.location.hash = inRouteHash;
+    if (inRouteHash) {
+      window.location.hash = inRouteHash;
+    } else if (A.scrollTop) {
+      A.scrollTop = false;
+      $body.scrollTop(0);
+    }
   };
 
   var noop = function() {};
@@ -48,6 +53,7 @@ define(['jquery', 'history'], function($) {
     routed: false,
     onRouteChange: null,
     beforeIntercept: noop,
+    scrollTop: false,
 
     // on State change
     //   - e: event object
@@ -78,6 +84,8 @@ define(['jquery', 'history'], function($) {
       A.beforeIntercept();
       A.beforeIntercept = noop;
       var $this = $(this);
+      // console.log($this.data('autoscroll'));
+
       if ($this.data('xhr') === 'back') {
         History.back();
       } else {
@@ -86,7 +94,7 @@ define(['jquery', 'history'], function($) {
       //Si autoscroll es true tira la pagina hacia arriba
       if ($this.data('autoscroll') === 'true' ||
         $this.data('autoscroll') === true) {
-        $('body').scrollTop(0);
+        A.scrollTop = true;
       }
       e.preventDefault();
     },
