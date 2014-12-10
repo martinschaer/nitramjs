@@ -1,6 +1,6 @@
 /* globals define,History */
 
-define(['jquery', 'history'], function ($) {
+define(['jquery', 'history'], function($) {
   'use strict';
 
   var FAIL_CONTROLLER_NAME = 'failController';
@@ -17,46 +17,52 @@ define(['jquery', 'history'], function ($) {
     return r;
   };
 
-  var _callController = function (state) {
+  var _callController = function(state) {
     var controller = state.controller,
       route = state.route,
       data = state.data,
       params = state.params,
       inRouteHash = state.hash,
       matchedRoute = A.matchRoute(route),
-      routeData = A.routes[matchedRoute.found];
+      routeData = A.routes[matchedRoute.found],
+      $body = $('body');
 
-    $('body').removeClass(getBodyClasses());
+    $body.removeClass(getBodyClasses());
 
     if (typeof routeData !== 'undefined' &&
       typeof routeData.bodyClass !== 'undefined') {
 
-      $('body').addClass(routeData.bodyClass);
+      $body.addClass(routeData.bodyClass);
     }
-
     // call controller
     A[controller](route, data, params);
-    if (inRouteHash) window.location.hash = inRouteHash;
+    if (inRouteHash) {
+      window.location.hash = inRouteHash;
+    } else if (A.scrollTop) {
+      A.scrollTop = false;
+      $body.scrollTop(0);
+    }
   };
 
-  var noop = function () {};
+  var noop = function() {};
 
   var A = {
-    version: '0.1.1',
+    version: '0.1.2',
     routes: {},
     base: '',
     routed: false,
     onRouteChange: null,
     beforeIntercept: noop,
+    scrollTop: false,
 
     // on State change
     //   - e: event object
-    onStateChange: function () {
+    onStateChange: function() {
       var state = History.getState(),
         data = state.data,
         next;
 
-      next = function () {
+      next = function() {
         if (A.routed) {
           _callController(data);
         }
@@ -65,7 +71,7 @@ define(['jquery', 'history'], function ($) {
       if (A.onRouteChange === null) {
         next();
       } else {
-        A.onRouteChange(function () {
+        A.onRouteChange(function() {
           A.onRouteChange = null;
           next();
         }, data.route, data.data, data.params);
@@ -74,20 +80,27 @@ define(['jquery', 'history'], function ($) {
 
     // Intercepta request de links para hacer requests XHR en vez de
     //   recargar toda la página
-    intercept: function (e) {
+    intercept: function(e) {
       A.beforeIntercept();
       A.beforeIntercept = noop;
+      var $this = $(this);
+      // console.log($this.data('autoscroll'));
 
-      if ($(this).data('xhr') === 'back') {
+      if ($this.data('xhr') === 'back') {
         History.back();
       } else {
-        A.route($(this).attr('href'));
+        A.route($this.attr('href'));
+      }
+      //Si autoscroll es true tira la pagina hacia arriba
+      if ($this.data('autoscroll') === 'true' ||
+        $this.data('autoscroll') === true) {
+        A.scrollTop = true;
       }
       e.preventDefault();
     },
 
     // match route pattern
-    matchRoute: function (route) {
+    matchRoute: function(route) {
       var i, patternSplit, pattern,
         routeSplit = route.split('/'),
         failed = false,
@@ -121,7 +134,7 @@ define(['jquery', 'history'], function ($) {
     },
 
     // route
-    route: function (route, replace) {
+    route: function(route, replace) {
       var routeData,
         controller,
         callController,
@@ -131,7 +144,7 @@ define(['jquery', 'history'], function ($) {
         routeSplit = route.split('#');
 
       // call controller
-      callController = function (data, status, params, controller,
+      callController = function(data, status, params, controller,
         baseAndRoute, routeData, replace) {
         var f = replace ? 'replaceState' : 'pushState',
           state = {
@@ -201,11 +214,11 @@ define(['jquery', 'history'], function ($) {
         $.ajaxSetup({
           cache: false
         });
-        $.get(baseAndRoute, function (data, textStatus, jqXHR) {
-          callController(data, jqXHR.status, params, controller, baseAndRoute,
-            routeData, replace);
-        })
-          .fail(function (jqXHR) {
+        $.get(baseAndRoute, function(data, textStatus, jqXHR) {
+            callController(data, jqXHR.status, params, controller, baseAndRoute,
+              routeData, replace);
+          })
+          .fail(function(jqXHR) {
             controller = FAIL_CONTROLLER_NAME;
             callController(null, jqXHR.status, params, controller, baseAndRoute,
               routeData, replace);
@@ -217,7 +230,7 @@ define(['jquery', 'history'], function ($) {
     },
 
     // compile
-    compile: function ($el) {
+    compile: function($el) {
       if (typeof $el === 'undefined') {
         $el = $(document);
       }
@@ -230,7 +243,7 @@ define(['jquery', 'history'], function ($) {
     // ----------------------
 
     // App init
-    init: function () {
+    init: function() {
       var route;
 
       // history events
