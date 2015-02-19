@@ -39,21 +39,23 @@ define(['jquery', 'history'], function ($) {
 
     if (inRouteHash) {
       window.location.hash = inRouteHash;
-    } else if (A.scrollTop) {
-      A.scrollTop = false;
-      $('body').scrollTop(0);
+    } else if (state.autoscroll) {
+      A.autoScrollFn();
     }
   };
 
   var noop = function () {};
 
   var A = {
-    version: '0.1.2',
+    version: '0.1.3',
     routes: {},
     base: '',
     routed: false,
     onRouteChange: null,
     beforeIntercept: noop,
+    autoScrollFn: function () {
+      $('body').scrollTop(0);
+    },
 
     // on State change
     //   - e: event object
@@ -81,22 +83,26 @@ define(['jquery', 'history'], function ($) {
     // Intercepta request de links para hacer requests XHR en vez de
     //   recargar toda la página
     intercept: function (e) {
+      var href = $(this).attr('href');
+
       A.beforeIntercept();
       A.beforeIntercept = noop;
 
-      if ($(this).data('xhr') === 'back') {
-        History.back();
-      } else {
-        A.route($(this).attr('href'));
-      }
+      if (href.indexOf('http://') !== 0 && href.indexOf('https://') !== 0) {
+        if ($(this).data('xhr') === 'back') {
+          History.back();
+        } else {
+          A.route(href, {
 
-      // Si autoscroll es true tira la pagina hacia arriba
-      if ($(this).data('autoscroll') === 'true' ||
-        $(this).data('autoscroll') === true) {
-        A.scrollTop = true;
-      }
+            // data convierte strins a valores de javascript
+            //   (http://api.jquery.com/data/#data-html5)
+            // el !! es para asegurarnos que sea boolean
+            autoscroll: !!$(this).data('autoscroll')
+          });
+        }
 
-      e.preventDefault();
+        e.preventDefault();
+      }
     },
 
     // match route pattern
@@ -134,18 +140,23 @@ define(['jquery', 'history'], function ($) {
     },
 
     // route
-    route: function (route, replace) {
+    route: function (_route, _options) {
       var routeData,
         controller,
         callController,
         baseAndRoute,
-        params = {},
         inRouteHash,
-        routeSplit = route.split('#');
+        route,
+        params = {},
+        options = {
+          replace: false,
+          autoscroll: false
+        },
+        routeSplit = _route.split('#');
 
       // call controller
       callController = function (data, status, params, controller,
-        baseAndRoute, routeData, replace) {
+        baseAndRoute, routeData, replace, autoscroll) {
         var f = replace ? 'replaceState' : 'pushState',
           state = {
             controller: controller,
@@ -153,7 +164,8 @@ define(['jquery', 'history'], function ($) {
             hash: inRouteHash,
             data: data,
             params: params,
-            status: status
+            status: status,
+            autoscroll: autoscroll
           };
         if (History.enabled) {
           // Push state
@@ -172,19 +184,34 @@ define(['jquery', 'history'], function ($) {
       inRouteHash = routeSplit[1];
       route = routeSplit[0];
 
+      // quitar trailing slash
+      if (route.lastIndexOf('/') === route.length - 1) {
+        route = route.substr(0, route.length - 1);
+      }
+
       baseAndRoute = this.base + route;
 
       if (inRouteHash) {
         inRouteHash = '#' + inRouteHash;
       }
 
-      // defaults
-      if (typeof replace === 'undefined') {
-        replace = false;
+      // options defaults
+      if (typeof _options !== 'undefined') {
+        if (typeof _options === 'boolean') {
+          options.replace = _options;
+        } else {
+          if (typeof _options.replace !== 'undefined') {
+            options.replace = _options.replace;
+          }
+          if (typeof _options.autoscroll !== 'undefined') {
+            options.autoscroll = _options.autoscroll;
+          }
+        }
       }
 
       // replace to true if we are on the same path
-      replace = window.location.pathname === this.base + route || replace;
+      options.replace = (window.location.pathname === this.base + route) ||
+        options.replace;
 
       // find route data
       routeData = A.routes[route];
@@ -194,9 +221,7 @@ define(['jquery', 'history'], function ($) {
           params = routeData.params;
           routeData = A.routes[routeData.found];
         } else {
-          controller = FAIL_CONTROLLER_NAME;
-          callController(null, 404, params, controller, baseAndRoute, routeData,
-            replace);
+          window.location = _route;
           return;
         }
       }
@@ -216,16 +241,16 @@ define(['jquery', 'history'], function ($) {
         });
         $.get(baseAndRoute, function (data, textStatus, jqXHR) {
           callController(data, jqXHR.status, params, controller, baseAndRoute,
-            routeData, replace);
+            routeData, options.replace, options.autoscroll);
         })
           .fail(function (jqXHR) {
             controller = FAIL_CONTROLLER_NAME;
             callController(null, jqXHR.status, params, controller, baseAndRoute,
-              routeData, replace);
+              routeData, options.replace, options.autoscroll);
           });
       } else {
         callController(null, 200, params, controller, baseAndRoute, routeData,
-          replace);
+          options.replace, options.autoscroll);
       }
     },
 
