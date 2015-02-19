@@ -1,10 +1,10 @@
 /*!
 
- NitramJS v0.1.3
+ NitramJS v0.1.4
 
 The MIT License (MIT)
 
-Copyright (c) 2014 martinschaer
+Copyright (c) 2015 martinschaer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -75,7 +75,7 @@ define(['jquery', 'history'], function ($) {
   var noop = function () {};
 
   var A = {
-    version: '0.1.3',
+    version: '0.1.4',
     routes: {},
     base: '',
     routed: false,
@@ -212,8 +212,8 @@ define(['jquery', 'history'], function ($) {
       inRouteHash = routeSplit[1];
       route = routeSplit[0];
 
-      // quitar trailing slash
-      if (route.lastIndexOf('/') === route.length - 1) {
+      // quitar trailing slash, pero dejarlo si la ruta es '/'
+      if (route.length > 1 && route.lastIndexOf('/') === route.length - 1) {
         route = route.substr(0, route.length - 1);
       }
 
