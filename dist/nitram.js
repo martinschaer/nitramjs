@@ -64,13 +64,19 @@ define(['jquery', 'history'], function ($) {
 
     // call controller
     A[controller](route, data, params);
-    if (inRouteHash) window.location.hash = inRouteHash;
+
+    if (inRouteHash) {
+      window.location.hash = inRouteHash;
+    } else if (A.scrollTop) {
+      A.scrollTop = false;
+      $('body').scrollTop(0);
+    }
   };
 
   var noop = function () {};
 
   var A = {
-    version: '0.1.1',
+    version: '0.1.2',
     routes: {},
     base: '',
     routed: false,
@@ -111,6 +117,13 @@ define(['jquery', 'history'], function ($) {
       } else {
         A.route($(this).attr('href'));
       }
+
+      // Si autoscroll es true tira la pagina hacia arriba
+      if ($(this).data('autoscroll') === 'true' ||
+        $(this).data('autoscroll') === true) {
+        A.scrollTop = true;
+      }
+
       e.preventDefault();
     },
 
