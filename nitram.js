@@ -6,7 +6,9 @@ define(['jquery', 'history'], function ($) {
   var FAIL_CONTROLLER_NAME = 'failController';
 
   var getBodyClasses = function getBodyClasses() {
-    var r, c, arr = [];
+    var r, c;
+    var arr = [];
+
     for (var key in A.routes) {
       c = A.routes[key];
       if (typeof c.bodyClass !== 'undefined') {
@@ -18,13 +20,13 @@ define(['jquery', 'history'], function ($) {
   };
 
   var _callController = function (state) {
-    var controller = state.controller,
-      route = state.route,
-      data = state.data,
-      params = state.params,
-      inRouteHash = state.hash,
-      matchedRoute = A.matchRoute(route),
-      routeData = A.routes[matchedRoute.found];
+    var controller = state.controller;
+    var route = state.route;
+    var data = state.data;
+    var params = state.params;
+    var inRouteHash = state.hash;
+    var matchedRoute = A.matchRoute(route);
+    var routeData = A.routes[matchedRoute.found];
 
     $('body').removeClass(getBodyClasses());
 
@@ -46,8 +48,35 @@ define(['jquery', 'history'], function ($) {
 
   var noop = function () {};
 
+  /**
+   * Parses a URL query (window.location.search) into an object
+   *
+   * @params {string} urlSearch
+   * @returns {Object.<string,string>}
+   */
+  var _getQuery = function (urlSearch) {
+    var urlParams;
+    var match;
+
+    // Regex for replacing addition symbol with a space
+    var pl = /\+/g;
+
+    var search = /([^&=]+)=?([^&]*)/g;
+    var decode = function (s) {
+      return decodeURIComponent(s.replace(pl, ' '));
+    };
+    var query = urlSearch.substring(1);
+
+    urlParams = {};
+    while ((match = search.exec(query))) {
+      urlParams[decode(match[1])] = decode(match[2]);
+    }
+
+    return urlParams;
+  };
+
   var A = {
-    version: '0.1.4',
+    version: '0.1.5',
     routes: {},
     base: '',
     routed: false,
@@ -57,14 +86,14 @@ define(['jquery', 'history'], function ($) {
       $('body').scrollTop(0);
     },
 
-    // on State change
-    //   - e: event object
+    /**
+     * On state change
+     */
     onStateChange: function () {
-      var state = History.getState(),
-        data = state.data,
-        next;
+      var state = History.getState();
+      var data = state.data;
 
-      next = function () {
+      var next = function () {
         if (A.routed) {
           _callController(data);
         }
@@ -80,8 +109,12 @@ define(['jquery', 'history'], function ($) {
       }
     },
 
-    // Intercepta request de links para hacer requests XHR en vez de
-    //   recargar toda la página
+    /**
+     * Intercepta request de links para hacer requests XHR en vez de recargar
+     * toda la página.
+     *
+     * @param {Object} e - Click event
+     */
     intercept: function (e) {
       var href = $(this).attr('href');
 
@@ -94,7 +127,7 @@ define(['jquery', 'history'], function ($) {
         } else {
           A.route(href, {
 
-            // data convierte strins a valores de javascript
+            // data convierte strings a valores de javascript
             //   (http://api.jquery.com/data/#data-html5)
             // el !! es para asegurarnos que sea boolean
             autoscroll: !!$(this).data('autoscroll')
@@ -105,13 +138,30 @@ define(['jquery', 'history'], function ($) {
       }
     },
 
-    // match route pattern
+    /**
+     * El resultado de matchRoute.
+     *
+     * @typedef matchedRoute
+     * @type Object
+     * @property {boolean} found - Determina si se encontró o no la ruta
+     * @property {Object.<string,string>} params - Parámetros en la ruta. Ej:
+     * La ruta /hello/:who tiene el parámetro 'who' de manera que en
+     * /hello/world tendríamos que params.who === 'world'.
+     */
+
+    /**
+     * Match route pattern
+     *
+     * @param {string} route
+     * @returns {matchedRoute} Especifica si se encontró y devuelve los
+     * parámetros
+     */
     matchRoute: function (route) {
-      var i, patternSplit, pattern,
-        routeSplit = route.split('/'),
-        failed = false,
-        found = false,
-        params = {};
+      var i, patternSplit, pattern;
+      var routeSplit = route.split('/');
+      var failed = false;
+      var found = false;
+      var params = {};
 
       for (pattern in A.routes) {
         patternSplit = pattern.split('/');
@@ -139,35 +189,48 @@ define(['jquery', 'history'], function ($) {
       };
     },
 
-    // route
+    /**
+     * Route
+     *
+     * @params {string} _route
+     * @params {(boolean|Object)} [_options={replace:false,autoscroll:false}] -
+     * If passed a boolean, it will be the value for the replace option, and
+     * autoscroll will get the default value false.
+     */
     route: function (_route, _options) {
-      var routeData,
-        controller,
-        callController,
-        baseAndRoute,
-        inRouteHash,
-        route,
-        params = {},
-        options = {
-          replace: false,
-          autoscroll: false
-        },
-        routeSplit = _route.split('#');
+      var routeData;
+      var controller;
+      var callController;
+      var baseAndRoute;
+      var route;
+      var parser;
+      var params = {};
+      var options = {
+        replace: false,
+        autoscroll: false
+      };
+
+      // thanks to https://gist.github.com/jlong/2428561
+      parser = document.createElement('a');
+      parser.href = _route;
 
       // call controller
       callController = function (data, status, params, controller,
         baseAndRoute, routeData, replace, autoscroll) {
-        var f = replace ? 'replaceState' : 'pushState',
-          state = {
-            controller: controller,
-            route: baseAndRoute,
-            hash: inRouteHash,
-            data: data,
-            params: params,
-            status: status,
-            autoscroll: autoscroll
-          };
+        var f = replace ? 'replaceState' : 'pushState';
+        var state = {
+          controller: controller,
+          route: baseAndRoute,
+          hash: parser.hash,
+          search: _getQuery(parser.search),
+          fullPath: A.base + _route,
+          data: data,
+          params: params,
+          status: status,
+          autoscroll: autoscroll
+        };
         if (History.enabled) {
+
           // Push state
           History[f](state, routeData.title, baseAndRoute);
 
@@ -181,8 +244,7 @@ define(['jquery', 'history'], function ($) {
         }
       };
 
-      inRouteHash = routeSplit[1];
-      route = routeSplit[0];
+      route = parser.pathname;
 
       // quitar trailing slash, pero dejarlo si la ruta es '/'
       if (route.length > 1 && route.lastIndexOf('/') === route.length - 1) {
@@ -190,10 +252,6 @@ define(['jquery', 'history'], function ($) {
       }
 
       baseAndRoute = this.base + route;
-
-      if (inRouteHash) {
-        inRouteHash = '#' + inRouteHash;
-      }
 
       // options defaults
       if (typeof _options !== 'undefined') {
@@ -254,20 +312,24 @@ define(['jquery', 'history'], function ($) {
       }
     },
 
-    // compile
+    /**
+     * Compile
+     *
+     * @params {Object} [$el=$(document)] - jQuery element in which to links to
+     * intercept.
+     */
     compile: function ($el) {
       if (typeof $el === 'undefined') {
         $el = $(document);
       }
+
       // link interceptor
       $el.find('a[data-xhr]').unbind('click').click(A.intercept);
     },
 
-    // ----------------------
-    // Init
-    // ----------------------
-
-    // App init
+    /**
+     * Nitram init
+     */
     init: function () {
       var route;
 
@@ -278,7 +340,7 @@ define(['jquery', 'history'], function ($) {
       A.compile();
 
       // route
-      route = window.location.pathname;
+      route = window.location.pathname + window.location.search;
       if (route.indexOf(this.base) === 0) {
         route = route.substr(this.base.length);
       }
