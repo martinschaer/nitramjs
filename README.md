@@ -5,7 +5,8 @@ Front-end SPA framework with jQuery and History.js
 ## Changelog
 
 ### v. 0.1.5
-- search part of the url (i.e. ?utm_campaign=helloworld) stored in History state
+- search part of the url (e.g. ?utm_campaign=helloworld) stored parsed as object in History state (`History.getState().data.search`)
+- full path (path + search, e.g. /foo?bar=helloworld) stored in History state (`History.getState().data.fullPath`). Usefull for tracking Google Analytics pageviews (`ga('send', 'pageview', History.getState().data.fullPath);`)
 - enhanced route parsing thanks to https://gist.github.com/jlong/2428561
 - some comments refactored to JSDoc standard
 - variable declarations refactored without separating them with ','
