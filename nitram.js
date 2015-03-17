@@ -204,6 +204,7 @@ define(['jquery', 'history'], function ($) {
       var baseAndRoute;
       var route;
       var parser;
+      var buggy = false;
       var params = {};
       var options = {
         replace: false,
@@ -213,6 +214,12 @@ define(['jquery', 'history'], function ($) {
       // thanks to https://gist.github.com/jlong/2428561
       parser = document.createElement('a');
       parser.href = _route;
+
+      // IE bug fix thanks to http://stackoverflow.com/a/13405933/368850
+      if (parser.host === '') {
+        buggy = true;
+        parser.href = parser.href;
+      }
 
       // call controller
       callController = function (data, status, params, controller,
@@ -245,6 +252,9 @@ define(['jquery', 'history'], function ($) {
       };
 
       route = parser.pathname;
+      if (buggy) {
+        route = '/' + route;
+      }
 
       // quitar trailing slash, pero dejarlo si la ruta es '/'
       if (route.length > 1 && route.lastIndexOf('/') === route.length - 1) {
