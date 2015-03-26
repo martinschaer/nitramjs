@@ -1,6 +1,6 @@
 /*!
 
- NitramJS v0.1.6
+ NitramJS v0.1.7
 
 The MIT License (MIT)
 
@@ -104,7 +104,7 @@ define(['jquery', 'history'], function ($) {
   };
 
   var A = {
-    version: '0.1.5',
+    version: '0.1.7',
     routes: {},
     base: '',
     routed: false,
@@ -229,7 +229,7 @@ define(['jquery', 'history'], function ($) {
       var routeData;
       var controller;
       var callController;
-      var baseAndRoute;
+      // var baseAndRoute;
       var route;
       var parser;
       var buggy = false;
@@ -241,7 +241,7 @@ define(['jquery', 'history'], function ($) {
 
       // thanks to https://gist.github.com/jlong/2428561
       parser = document.createElement('a');
-      parser.href = _route;
+      parser.href = this.base + _route;
 
       // IE bug fix thanks to http://stackoverflow.com/a/13405933/368850
       if (parser.host === '') {
@@ -251,11 +251,11 @@ define(['jquery', 'history'], function ($) {
 
       // call controller
       callController = function (data, status, params, controller,
-        baseAndRoute, routeData, replace, autoscroll) {
+        route, routeData, replace, autoscroll) {
         var f = replace ? 'replaceState' : 'pushState';
         var state = {
           controller: controller,
-          route: baseAndRoute,
+          route: route,
           hash: parser.hash,
           search: _getQuery(parser.search),
           fullPath: A.base + _route,
@@ -267,7 +267,7 @@ define(['jquery', 'history'], function ($) {
         if (History.enabled) {
 
           // Push state
-          History[f](state, routeData.title, baseAndRoute);
+          History[f](state, routeData.title, route);
 
           // Call controller directly when replacing the state
           if (replace) {
@@ -289,7 +289,7 @@ define(['jquery', 'history'], function ($) {
         route = route.substr(0, route.length - 1);
       }
 
-      baseAndRoute = this.base + route;
+      // baseAndRoute = this.base + route + parser.search;
 
       // options defaults
       if (typeof _options !== 'undefined') {
@@ -335,17 +335,17 @@ define(['jquery', 'history'], function ($) {
         $.ajaxSetup({
           cache: false
         });
-        $.get(baseAndRoute, function (data, textStatus, jqXHR) {
-          callController(data, jqXHR.status, params, controller, baseAndRoute,
+        $.get(parser.href, function (data, textStatus, jqXHR) {
+          callController(data, jqXHR.status, params, controller, route,
             routeData, options.replace, options.autoscroll);
         })
           .fail(function (jqXHR) {
             controller = FAIL_CONTROLLER_NAME;
-            callController(null, jqXHR.status, params, controller, baseAndRoute,
+            callController(null, jqXHR.status, params, controller, route,
               routeData, options.replace, options.autoscroll);
           });
       } else {
-        callController(null, 200, params, controller, baseAndRoute, routeData,
+        callController(null, 200, params, controller, route, routeData,
           options.replace, options.autoscroll);
       }
     },

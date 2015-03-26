@@ -4,6 +4,9 @@ Front-end SPA framework with jQuery and History.js
 
 ## Changelog
 
+### v. 0.1.7
+- URL search params get passed through the AJAX request
+
 ### v. 0.1.6
 - fixed bug in IE with the pathname. Thanks to: http://stackoverflow.com/a/13405933/368850
 
