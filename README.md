@@ -4,6 +4,9 @@ Front-end SPA framework with jQuery and History.js
 
 ## Changelog
 
+### v. 0.1.8
+- set document title with route title
+
 ### v. 0.1.7
 - URL search params get passed through the AJAX request
 

@@ -76,7 +76,7 @@ define(['jquery', 'history'], function ($) {
   };
 
   var A = {
-    version: '0.1.7',
+    version: '0.1.8',
     routes: {},
     base: '',
     routed: false,
@@ -236,6 +236,10 @@ define(['jquery', 'history'], function ($) {
           status: status,
           autoscroll: autoscroll
         };
+
+        // set document title
+        document.title = routeData.title;
+
         if (History.enabled) {
 
           // Push state
@@ -297,6 +301,10 @@ define(['jquery', 'history'], function ($) {
       // route data defautls
       if (typeof routeData.req === 'undefined') {
         routeData.req = true;
+      }
+
+      if (typeof routeData.title === 'undefined') {
+        routeData.title = document.title;
       }
 
       // get controller
