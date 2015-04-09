@@ -6,6 +6,7 @@ Front-end SPA framework with jQuery and History.js
 
 ### v. 0.1.8
 - set document title with route title
+- beforeIntercept now has to call a callback, like onRouteChange
 
 ### v. 0.1.7
 - URL search params get passed through the AJAX request

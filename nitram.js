@@ -81,7 +81,7 @@ define(['jquery', 'history'], function ($) {
     base: '',
     routed: false,
     onRouteChange: null,
-    beforeIntercept: noop,
+    beforeIntercept: null,
     autoScrollFn: function () {
       $('body').scrollTop(0);
     },
@@ -116,26 +116,35 @@ define(['jquery', 'history'], function ($) {
      * @param {Object} e - Click event
      */
     intercept: function (e) {
-      var href = $(this).attr('href');
+      var self = this;
+      var href = $(self).attr('href');
 
-      A.beforeIntercept();
-      A.beforeIntercept = noop;
+      var next = function () {
+        if (href.indexOf('http://') !== 0 && href.indexOf('https://') !== 0) {
+          if ($(self).data('xhr') === 'back') {
+            History.back();
+          } else {
+            A.route(href, {
 
-      if (href.indexOf('http://') !== 0 && href.indexOf('https://') !== 0) {
-        if ($(this).data('xhr') === 'back') {
-          History.back();
-        } else {
-          A.route(href, {
-
-            // data convierte strings a valores de javascript
-            //   (http://api.jquery.com/data/#data-html5)
-            // el !! es para asegurarnos que sea boolean
-            autoscroll: !!$(this).data('autoscroll')
-          });
+              // data convierte strings a valores de javascript
+              //   (http://api.jquery.com/data/#data-html5)
+              // el !! es para asegurarnos que sea boolean
+              autoscroll: !!$(self).data('autoscroll')
+            });
+          }
         }
+      };
 
-        e.preventDefault();
+      if (A.beforeIntercept === null) {
+        next();
+      } else {
+        A.beforeIntercept(function () {
+          A.beforeIntercept = null;
+          next();
+        }, e);
       }
+
+      e.preventDefault();
     },
 
     /**
