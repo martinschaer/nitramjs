@@ -1,4 +1,4 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
   'use strict';
 
   var distBanner = '/*!\n\n <%= pkg.name %> v<%= pkg.version %>' +
@@ -25,12 +25,12 @@ module.exports = function(grunt) {
         }
       }
     },
-    copy: {
-      dist: {
-        src: 'nitram.js',
-        dest: 'dist/nitram.js'
-      },
-    },
+    // copy: {
+    //   dist: {
+    //     src: 'nitram.js',
+    //     dest: 'dist/nitram.js'
+    //   },
+    // },
     usebanner: {
       dist: {
         options: {
@@ -40,6 +40,19 @@ module.exports = function(grunt) {
           src: ['dist/nitram.js']
         }
       }
+    },
+    umd: {
+      all: {
+        options: {
+          src: 'nitram.js',
+          dest: 'dist/nitram.js',
+          objectToExport: 'nitram',
+          amdModuleId: 'nitram',
+          deps: {
+            'default': ['jquery']
+          }
+        }
+      }
     }
   });
 
@@ -47,10 +60,12 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-banner');
+  grunt.loadNpmTasks('grunt-umd');
 
   grunt.registerTask('dist', [
     'jshint',
-    'copy',
+    'umd',
+    // 'copy',
     'usebanner',
     'uglify'
   ]);

@@ -4,6 +4,9 @@ Front-end SPA framework with jQuery and History.js
 
 ## Changelog
 
+### v. 1.0.0
+- NEW! Controller factory with defaults! Convention over Customization and Don't Repeat Yourself principles FTW!
+
 ### v. 0.1.8
 - set document title with route title
 - beforeIntercept now has to call a callback, like onRouteChange
