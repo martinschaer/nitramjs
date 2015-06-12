@@ -9,7 +9,7 @@ var nitram = {
   routed: false,
   routes: {},
   autoScrollFn: function () {
-    jquery('body').scrollTop(0);
+    jquery('html, body').scrollTop(0);
   }
 };
 
