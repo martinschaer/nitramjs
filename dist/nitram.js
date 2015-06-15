@@ -542,9 +542,10 @@ nitram.controllerFactory.setDefaults = function (options) {
  * Call default lifecycle method
  */
 nitram.controllerFactory.callDefault = function (name) {
-  var args = Array.prototype.slice.call(arguments).shift();
+  var args = Array.prototype.slice.call(arguments);
+  args.shift();
 
-  nitram.controllerFactory._defaults[name].call(null, args);
+  nitram.controllerFactory._defaults[name].apply(null, args);
 };
 
 /**
