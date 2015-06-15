@@ -37,7 +37,7 @@ module.exports = nitram.controllerFactory.make({
   afterRouteChange: function (next) {
     $('#main').fadeOut(function () {
       $('#loading').show();
-      nitram.controllerFactory.callDefault('beforeRouteChange', next);
+      nitram.controllerFactory.callDefault('afterRouteChange', next);
     });
   }
 });
