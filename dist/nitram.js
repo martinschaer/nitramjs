@@ -1,6 +1,6 @@
 /*!
 
- NitramJS v1.0.0
+ NitramJS v1.0.1
 
 The MIT License (MIT)
 
@@ -293,7 +293,8 @@ nitram.init = function () {
   nitram.compile();
 
   // route
-  route = window.location.pathname + window.location.search;
+  route = window.location.pathname + window.location.hash +
+    window.location.search;
   if (route.indexOf(this.base) === 0) {
     route = route.substr(this.base.length);
   }
