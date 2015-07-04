@@ -1,6 +1,6 @@
 /*!
 
- NitramJS v1.0.1
+ NitramJS v1.0.2
 
 The MIT License (MIT)
 
@@ -48,7 +48,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 var FAIL_CONTROLLER_NAME = 'failController';
 
 var nitram = {
-  version: '1.0.0',
+  version: '1.0.2',
   base: '',
   routed: false,
   routes: {},
@@ -445,7 +445,7 @@ nitram.route = function (_route, _options) {
       })
       .fail(function (jqXHR) {
         controller = FAIL_CONTROLLER_NAME;
-        callController(null, jqXHR.status, params, controller, route,
+        callController(jqXHR, jqXHR.status, params, controller, route,
           routeData, options.replace, options.autoscroll);
       });
   } else {
