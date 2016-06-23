@@ -4,7 +4,7 @@
 var FAIL_CONTROLLER_NAME = 'failController';
 
 var nitram = {
-  version: '1.0.2',
+  version: '1.0.3',
   base: '',
   routed: false,
   routes: {},
@@ -100,7 +100,7 @@ var _getQuery = function (urlSearch) {
  */
 var _matchRoute = function (route) {
   var i, patternSplit, pattern;
-  var routeSplit = route.split('/');
+  var routeSplit = route.split('?')[0].split('/');
   var failed = false;
   var found = false;
   var params = {};
@@ -307,7 +307,12 @@ nitram.route = function (_route, _options) {
   callController = function (data, status, params, controller,
     route, routeData, replace, autoscroll) {
     var f = replace ? 'replaceState' : 'pushState';
-    var state = {
+    var state;
+
+    // agregar search a la ruta
+    route += parser.search;
+
+    state = {
       controller: controller,
       route: route,
       hash: parser.hash,
@@ -450,7 +455,7 @@ nitram.controllerFactory = {
      * Entry lifecycle function that is called once the request is ready, and
      * just before the partial is injected into the view. Receives a callback
      * that need to be called when finished.
-     * 
+     *
      * @example
      * loaded: function (next) {
      *   jquery('#loading').hide();
@@ -462,7 +467,7 @@ nitram.controllerFactory = {
     /**
      * Entry lifecycle function that is called after the partial injection.
      * Does not have a callback, because this is the last step of the
-     * controller entry lifecycle. 
+     * controller entry lifecycle.
      */
     ready: _noop,
 

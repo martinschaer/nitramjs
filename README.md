@@ -4,6 +4,9 @@ Front-end SPA framework with jQuery and History.js
 
 ## Changelog
 
+### v. 1.0.3
+- Search queries remain on URL, and are still saved into the History state
+
 ### v. 1.0.0
 - NEW! Controller factory with defaults! Convention over Customization and Don't Repeat Yourself principles FTW!
 
