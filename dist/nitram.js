@@ -1,6 +1,6 @@
 /*!
 
- NitramJS v1.0.3
+ nitramjs v1.1.0
 
 The MIT License (MIT)
 
@@ -48,7 +48,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 var FAIL_CONTROLLER_NAME = 'failController';
 
 var nitram = {
-  version: '1.0.3',
+  version: '1.1.0',
   base: '',
   routed: false,
   routes: {},
@@ -203,7 +203,6 @@ var _callController = function (state) {
 
       // loaded
       controller.loaded.call(null, function () {
-
         // render
         $view.html(controller.partialFilter(state.data));
         nitram.compile($view);
@@ -211,7 +210,6 @@ var _callController = function (state) {
         // ready
         controller.ready.call(null, state.route, state.data, state.params);
       }, state.route, state.data, state.params);
-
     })(_controllers[_currControllerName]);
   }
 
@@ -313,7 +311,7 @@ nitram.compile = function ($el) {
   }
 
   // link interceptor
-  $el.find('a[data-xhr]').unbind('click').click(_intercept);
+  $el.find('a[data-xhr]').off('click').click(_intercept);
 };
 
 /**
@@ -372,7 +370,6 @@ nitram.route = function (_route, _options) {
     document.title = routeData.title;
 
     if (History.enabled) {
-
       // Push state
       History[f](state, routeData.title, route);
 
@@ -445,9 +442,10 @@ nitram.route = function (_route, _options) {
       cache: false
     });
     jquery.get(parser.href, function (data, textStatus, jqXHR) {
-        callController(data, jqXHR.status, params, controller, route,
+        // TODO: pasar el jqXHR hasta el controller
+      callController(data, jqXHR.status, params, controller, route,
           routeData, options.replace, options.autoscroll);
-      })
+    })
       .fail(function (jqXHR) {
         controller = FAIL_CONTROLLER_NAME;
         callController(jqXHR, jqXHR.status, params, controller, route,
@@ -465,8 +463,7 @@ nitram.route = function (_route, _options) {
  * @param {Controller} controller
  */
 nitram.register = function (name, controller) {
-  _controllers[name] = controller ?
-    controller : nitram.controllerFactory.make();
+  _controllers[name] = controller || nitram.controllerFactory.make();
 };
 
 /**

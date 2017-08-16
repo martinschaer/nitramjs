@@ -4,6 +4,9 @@ Front-end SPA framework with jQuery and History.js
 
 ## Changelog
 
+### v. 1.1.0
+- Changed .unbind to .off to comply with jquery v3
+
 ### v. 1.0.3
 - Search queries remain on URL, and are still saved into the History state
 

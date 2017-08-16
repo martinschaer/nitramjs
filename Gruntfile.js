@@ -9,7 +9,8 @@ module.exports = function (grunt) {
     jshint: {
       options: {
         ignores: [],
-        jshintrc: true
+        jshintrc: true,
+        reporterOutput: ''
       },
       all: ['nitram.js']
     },
@@ -69,5 +70,4 @@ module.exports = function (grunt) {
     'usebanner',
     'uglify'
   ]);
-
 };
