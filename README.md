@@ -4,6 +4,9 @@ Front-end SPA framework with jQuery and History.js
 
 ## Changelog
 
+### v. 1.2.0
+- Using native history. Dropped IE9. Use 1.1.0 if you need IE9 support.
+
 ### v. 1.1.0
 - Changed .unbind to .off to comply with jquery v3
 

@@ -1,10 +1,10 @@
-/* globals jquery, History */
+/* globals jquery */
 'use strict';
 
 var FAIL_CONTROLLER_NAME = 'failController';
 
 var nitram = {
-  version: '1.1.0',
+  version: '1.2.0',
   base: '',
   routed: false,
   routes: {},
@@ -180,7 +180,8 @@ var _callController = function (state) {
  * On state change
  */
 var _onStateChange = function () {
-  var state = History.getState().data;
+  var state = (window.history && window.history.state) || false;
+  if (state === false) return;
 
   var next = function () {
     if (nitram.routed) {
@@ -208,7 +209,7 @@ var _intercept = function (e) {
   var next = function () {
     if (href.indexOf('http://') !== 0 && href.indexOf('https://') !== 0) {
       if (jquery(self).data('xhr') === 'back') {
-        History.back();
+        window.history.back();
       } else {
         nitram.route(href, {
 
@@ -241,7 +242,7 @@ nitram.init = function () {
   var route;
 
   // history events
-  History.Adapter.bind(window, 'statechange', _onStateChange);
+  window.onpopstate = _onStateChange;
 
   // initial compilation
   nitram.compile();
@@ -325,14 +326,16 @@ nitram.route = function (_route, _options) {
     // set document title
     document.title = routeData.title;
 
-    if (History.enabled) {
+    if (window.history) {
       // Push state
-      History[f](state, routeData.title, route);
+      window.history[f](state, routeData.title, route);
 
       // Call controller directly when replacing the state
       if (replace) {
         nitram.routed = true;
         _callController(state);
+      } else {
+        _onStateChange();
       }
     } else {
       _callController(state);
