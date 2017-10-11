@@ -4,6 +4,9 @@ Front-end SPA framework with jQuery and History.js
 
 ## Changelog
 
+### v. 1.2.1
+- Hash is set while changing state, instead of after because it triggered a popstate event.
+
 ### v. 1.2.0
 - Using native history. Dropped IE9. Use 1.1.0 if you need IE9 support.
 

@@ -4,7 +4,7 @@
 var FAIL_CONTROLLER_NAME = 'failController';
 
 var nitram = {
-  version: '1.2.0',
+  version: '1.2.1',
   base: '',
   routed: false,
   routes: {},
@@ -169,9 +169,7 @@ var _callController = function (state) {
     })(_controllers[_currControllerName]);
   }
 
-  if (state.hash) {
-    window.location.hash = state.hash;
-  } else if (state.autoscroll) {
+  if (state.autoscroll) {
     nitram.autoScrollFn();
   }
 };
@@ -328,7 +326,7 @@ nitram.route = function (_route, _options) {
 
     if (window.history) {
       // Push state
-      window.history[f](state, routeData.title, route);
+      window.history[f](state, routeData.title, route + parser.hash);
 
       // Call controller directly when replacing the state
       if (replace) {
