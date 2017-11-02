@@ -1,6 +1,6 @@
 /*!
 
- nitramjs v1.2.1
+ nitramjs v1.2.2
 
 The MIT License (MIT)
 

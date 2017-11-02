@@ -4,6 +4,9 @@ Front-end SPA framework with jQuery and History.js
 
 ## Changelog
 
+### v. 1.2.2
+- Fix do not pass jqXHR to the fail controller. Push state throws an exception if the jqXHR hast status 404
+
 ### v. 1.2.1
 - Hash is set while changing state, instead of after because it triggered a popstate event.
 
