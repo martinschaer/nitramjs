@@ -48,7 +48,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 var FAIL_CONTROLLER_NAME = 'failController';
 
 var nitram = {
-  version: '1.2.1',
+  version: '1.2.2',
   base: '',
   routed: false,
   routes: {},
@@ -443,13 +443,19 @@ nitram.route = function (_route, _options) {
       cache: false
     });
     jquery.get(parser.href, function (data, textStatus, jqXHR) {
-        // TODO: pasar el jqXHR hasta el controller
+      // TODO: ver que otros datos del jqXHR vale la pena pasar
+      // No se puede pasar el objecto completo porque si es un 404
+      //   History.pushState revienta
       callController(data, jqXHR.status, params, controller, route,
           routeData, options.replace, options.autoscroll);
     })
       .fail(function (jqXHR) {
         controller = FAIL_CONTROLLER_NAME;
-        callController(jqXHR, jqXHR.status, params, controller, route,
+        callController({
+          responseText: jqXHR.responseText,
+          responseJSON: jqXHR.responseJSON,
+          status: jqXHR.status
+        }, jqXHR.status, params, controller, route,
           routeData, options.replace, options.autoscroll);
       });
   } else {
